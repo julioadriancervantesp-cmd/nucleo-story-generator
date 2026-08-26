@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NUCLEO · Mi entrenamiento</title>
+<style>
+:root{--n:#0A0A0A;--g:#1B1B1B;--a:#4A4A44;--c:#B7B7B7;--h:#EDEDE9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--n);color:var(--h);font-family:Arial,sans-serif}
+.app{max-width:1200px;margin:auto;padding:20px}
+.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding:0 0 18px}
+.brand{height:34px}
+.ey{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--c)}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:28px;margin-top:28px}
+.panel{border:1px solid #333;border-radius:12px;padding:20px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 24px}
+.tab,.btn,.file{border:1px solid #444;background:transparent;color:var(--h);padding:14px;border-radius:8px;font-weight:700;letter-spacing:.08em;text-align:center;font-size:14px}
+.tab.on,.primary{background:var(--h);color:var(--n)}
+label{display:block;font-size:11px;letter-spacing:.15em;color:var(--c);margin:14px 0 6px;text-transform:uppercase}
+input{width:100%;background:#0d0d0d;border:1px solid #3b3b3b;border-radius:7px;padding:13px;color:var(--h);font-size:16px}
+input::placeholder{color:#555}
+.file{display:block;cursor:pointer;margin-top:14px}
+.file input{display:none}
+.ranges{display:none}
+.ranges.show{display:block}
+.range{accent-color:var(--h)}
+.primary{width:100%;margin-top:24px;cursor:pointer;padding:16px;font-size:15px}
+.preview{max-width:430px;margin:auto;aspect-ratio:9/16;position:relative;overflow:hidden;background:#111;border:1px solid #333;border-radius:12px}
+.bg{position:absolute;inset:0;background-size:cover;background-position:50% 50%}
+.shade{position:absolute;inset:0;background:rgba(10,10,10,.48)}
+.story{position:absolute;inset:0;padding:7%;display:flex;flex-direction:column}
+.storylogo{width:68%;max-height:82px;object-fit:contain;object-position:left center}
+.date{margin-top:35%;font-size:9px;letter-spacing:.3em}
+.rule{height:1px;background:#777;margin:15px 0 24px}
+.main{font-size:76px;font-weight:700;letter-spacing:-.06em;line-height:.9;min-height:.9em}
+.mainlabel{font-size:9px;letter-spacing:.3em;margin-top:14px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #666;border-bottom:1px solid #666;margin-top:28px}
+.metric{text-align:center;padding:16px 5px;border-right:1px solid #555}
+.metric:last-child{border:0}
+.v{font-size:17px;font-weight:700;min-height:1.2em}
+.l{font-size:7px;letter-spacing:.18em;color:var(--c);margin-top:7px}
+.msg{font-size:14px;font-weight:700;letter-spacing:.2em;margin-top:28px;min-height:1.4em}
+.foot{margin-top:auto;border-top:1px solid #666;padding-top:16px;display:flex;justify-content:space-between;align-items:end}
+.foot b{letter-spacing:.2em}
+.foot small{font-size:7px;letter-spacing:.2em;color:var(--c)}
+.note{font-size:12px;color:var(--c);margin-top:12px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--h);color:var(--n);padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:780px){.grid{grid-template-columns:1fr}.panel{order:2}.previewWrap{order:1}.top .ey{display:none}.app{padding:14px}.main{font-size:17vw}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <img class="brand" src="assets/nucleo-logo.png">
+    <div class="ey">MI ENTRENAMIENTO</div>
+  </header>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="ey">01 · ELIGE TU TIPO</div>
+      <div class="tabs">
+        <button class="tab on" data-mode="run">RUN</button>
+        <button class="tab" data-mode="clase">CLASE</button>
+        <button class="tab" data-mode="hyrox">HYROX</button>
+      </div>
+
+      <div class="ey">02 · COMPLETA TUS DATOS</div>
+      <div id="campos"></div>
+
+      <label>Mensaje (opcional)</label>
+      <input id="msg" placeholder="HOY VOLVÍ." maxlength="28">
+
+      <label class="file">AGREGAR FOTO (OPCIONAL)<input id="photo" type="file" accept="image/*"></label>
+      <div id="ranges" class="ranges">
+        <label>Zoom</label>
+        <input class="range" id="zoom" type="range" min="100" max="180" value="110">
+        <label>Posición horizontal</label>
+        <input class="range" id="px" type="range" min="0" max="100" value="50">
+        <label>Posición vertical</label>
+        <input class="range" id="py" type="range" min="0" max="100" value="50">
+        <label>Oscurecer fondo</label>
+        <input class="range" id="dark" type="range" min="10" max="80" value="48">
+      </div>
+
+      <button id="download" class="btn primary">GENERAR Y GUARDAR</button>
+      <div class="note">La imagen se genera en tu propio celular — no se sube a ningún lado. En iPhone se abre en una pestaña nueva: mantén el dedo sobre la imagen y elige "Agregar a Fotos".</div>
+    </section>
+
+    <section class="previewWrap">
+      <div class="ey" style="margin-bottom:10px">VISTA PREVIA · 1080 × 1920</div>
+      <div class="preview">
+        <div id="bg" class="bg"></div>
+        <div id="shade" class="shade"></div>
+        <div class="story">
+          <img class="storylogo" src="assets/nucleo-logo.png">
+          <div id="date" class="date">RUN · 26 AGO 2026</div>
+          <div class="rule"></div>
+          <div id="mainO" class="main"></div>
+          <div id="mainL" class="mainlabel">RITMO / KM</div>
+          <div class="metrics">
+            <div class="metric"><div id="o1" class="v"></div><div id="l1" class="l">DISTANCIA</div></div>
+            <div class="metric"><div id="o2" class="v"></div><div id="l2" class="l">TIEMPO</div></div>
+            <div class="metric"><div id="o3" class="v"></div><div id="l3" class="l">RITMO</div></div>
+            <div class="metric"><div id="o4" class="v"></div><div id="l4" class="l">FC MEDIA</div></div>
+          </div>
+          <div id="msgO" class="msg"></div>
+          <div class="foot">
+            <div><b>NUCLEO</b><br><small>TEPIC, NAY.</small></div>
+            <small>VOLVER · CONSTRUIR · CARÁCTER</small>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<canvas id="cv" width="1080" height="1920" hidden></canvas>
+<div id="toast" class="toast">Imagen lista</div>
+
+<script>
+const $ = x => document.getElementById(x)
+
+// Cada modo define sus propios campos con nombre real y un ejemplo de
+// formato — así el formulario dice "Distancia" en vez de "Dato 1" y el
+// usuario ve de una vez qué escribir, sin tener que adivinar ni borrar
+// un valor de muestra primero.
+const modes = {
+  run: {
+    mainLabel: 'Ritmo por KM', mainPlaceholder: '05:12', mainOut: 'RITMO / KM',
+    campos: [
+      { id: 'd1', label: 'Distancia',  placeholder: '8.12 KM', out: 'DISTANCIA' },
+      { id: 'd2', label: 'Tiempo total', placeholder: '42:18', out: 'TIEMPO' },
+      { id: 'd3', label: 'Ritmo promedio', placeholder: '05:12', out: 'RITMO' },
+      { id: 'd4', label: 'Frecuencia cardiaca', placeholder: '156 BPM', out: 'FC MEDIA' },
+    ],
+  },
+  clase: {
+    mainLabel: 'Resultado / % logrado', mainPlaceholder: '87%', mainOut: 'RESULTADO',
+    campos: [
+      { id: 'd1', label: 'Duración',   placeholder: '50 MIN',   out: 'DURACIÓN' },
+      { id: 'd2', label: 'Esfuerzo percibido (RPE)', placeholder: '7.8 / 10', out: 'RPE' },
+      { id: 'd3', label: 'Frecuencia cardiaca', placeholder: '142 BPM', out: 'FC MEDIA' },
+      { id: 'd4', label: 'Calorías',   placeholder: '558 KCAL', out: 'CALORÍAS' },
+    ],
+  },
+  hyrox: {
+    mainLabel: 'Tiempo total', mainPlaceholder: '01:18:42', mainOut: 'TIEMPO TOTAL',
+    campos: [
+      { id: 'd1', label: 'Run',  placeholder: '40:12', out: 'RUN' },
+      { id: 'd2', label: 'Ski',  placeholder: '04:36', out: 'SKI' },
+      { id: 'd3', label: 'Sled', placeholder: '08:18', out: 'SLED' },
+      { id: 'd4', label: 'Frecuencia cardiaca', placeholder: '164 BPM', out: 'FC MEDIA' },
+    ],
+  },
+}
+
+let mode = 'run'
+let image = null
+const fecha = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+  .format(new Date()).replace('.', '').toUpperCase()
+
+function renderCampos() {
+  const m = modes[mode]
+  $('campos').innerHTML = `
+    <label>${m.mainLabel}</label>
+    <input id="main" placeholder="${m.mainPlaceholder}">
+    ${m.campos.map(c => `<label>${c.label}</label><input id="${c.id}" placeholder="${c.placeholder}">`).join('')}
+  `
+  $('main').oninput = sync
+  m.campos.forEach(c => { $(c.id).oninput = sync })
+  sync()
+}
+
+function val(id, fallback) {
+  const v = $(id)?.value.trim()
+  return (v || fallback).toUpperCase()
+}
+
+function sync() {
+  const m = modes[mode]
+  $('mainO').textContent = val('main', m.mainPlaceholder)
+  $('mainL').textContent = m.mainOut
+  m.campos.forEach((c, i) => {
+    $('o' + (i + 1)).textContent = val(c.id, c.placeholder)
+    $('l' + (i + 1)).textContent = c.out
+  })
+  $('msgO').textContent = val('msg', '')
+  $('date').textContent = mode.toUpperCase() + ' · ' + fecha
+}
+
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  mode = b.dataset.mode
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b))
+  renderCampos()
+})
+$('msg').oninput = sync
+
+function photoStyle() {
+  $('bg').style.backgroundSize = $('zoom').value + '%'
+  $('bg').style.backgroundPosition = $('px').value + '% ' + $('py').value + '%'
+  $('shade').style.background = `rgba(10,10,10,${$('dark').value / 100})`
+}
+;['zoom', 'px', 'py', 'dark'].forEach(x => $(x).oninput = photoStyle)
+
+$('photo').onchange = e => {
+  const f = e.target.files[0]
+  if (!f) return
+  const r = new FileReader()
+  r.onload = () => {
+    image = new Image()
+    image.onload = () => {
+      $('bg').style.backgroundImage = `url(${r.result})`
+      $('ranges').classList.add('show')
+      photoStyle()
+    }
+    image.src = r.result
+  }
+  r.readAsDataURL(f)
+}
+
+function text(ctx, t, x, y, s, w = '400', a = 'left') {
+  ctx.font = `${w} ${s}px Arial`
+  ctx.textAlign = a
+  ctx.fillStyle = '#EDEDE9'
+  ctx.fillText(t, x, y)
+}
+function cover(ctx, img, w, h, z, px, py) {
+  const r = img.width / img.height, tr = w / h
+  let dw, dh
+  if (r > tr) { dh = h * z; dw = dh * r } else { dw = w * z; dh = dw / r }
+  ctx.drawImage(img, (w - dw) * px, (h - dh) * py, dw, dh)
+}
+
+function mostrarToast(msg) {
+  const t = $('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2500)
+}
+
+// En iPhone, si la página no viene de https, Safari no deja "descargar" un
+// archivo generado en el momento. Por eso en vez de forzar una descarga,
+// abrimos la imagen en una pestaña nueva — desde ahí, mantener el dedo
+// sobre la imagen y "Agregar a Fotos" funciona siempre, en cualquier
+// navegador y sin depender de que el sitio esté en https.
+$('download').onclick = () => {
+  const m = modes[mode]
+  const c = $('cv'), ctx = c.getContext('2d')
+  ctx.fillStyle = '#0A0A0A'
+  ctx.fillRect(0, 0, 1080, 1920)
+  if (image) cover(ctx, image, 1080, 1920, $('zoom').value / 100, $('px').value / 100, $('py').value / 100)
+  ctx.fillStyle = `rgba(10,10,10,${$('dark').value / 100})`
+  ctx.fillRect(0, 0, 1080, 1920)
+
+  const logo = new Image()
+  logo.onload = () => {
+    ctx.drawImage(logo, 80, 80, 650, 161)
+    text(ctx, mode.toUpperCase() + ' · ' + fecha, 80, 620, 25)
+    ctx.strokeStyle = '#777'
+    ctx.beginPath(); ctx.moveTo(80, 660); ctx.lineTo(1000, 660); ctx.stroke()
+
+    text(ctx, val('main', m.mainPlaceholder), 80, 870, 190, '700')
+    text(ctx, m.mainOut, 85, 940, 25)
+    ctx.beginPath(); ctx.moveTo(80, 1010); ctx.lineTo(1000, 1010); ctx.stroke()
+
+    ;[195, 425, 655, 885].forEach((x, i) => {
+      text(ctx, val(m.campos[i].id, m.campos[i].placeholder), x, 1100, 38, '700', 'center')
+      text(ctx, m.campos[i].out, x, 1145, 18, '400', 'center')
+    })
+    ctx.beginPath(); ctx.moveTo(80, 1205); ctx.lineTo(1000, 1205); ctx.stroke()
+
+    text(ctx, val('msg', ''), 80, 1320, 34, '700')
+    ctx.beginPath(); ctx.moveTo(80, 1720); ctx.lineTo(1000, 1720); ctx.stroke()
+    text(ctx, 'NUCLEO', 80, 1800, 38, '700')
+    text(ctx, 'TEPIC, NAY.', 80, 1845, 19)
+    text(ctx, 'VOLVER · CONSTRUIR · CARÁCTER', 1000, 1845, 16, '400', 'right')
+
+    c.toBlob(blob => {
+      if (!blob) { mostrarToast('No se pudo generar la imagen, intenta de nuevo'); return }
+      const url = URL.createObjectURL(blob)
+
+      // Intento 1: descarga directa (funciona en Android/Chrome/desktop).
+      const a = document.createElement('a')
+      a.download = 'NUCLEO-STORY.png'
+      a.href = url
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+
+      // Intento 2, siempre además del primero: abrir en pestaña nueva —
+      // es lo único que funciona de forma confiable en Safari/iPhone.
+      window.open(url, '_blank')
+
+      mostrarToast('Listo — si no se descargó sola, mantén el dedo sobre la imagen y "Agregar a Fotos"')
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+    }, 'image/png')
+  }
+  logo.src = 'assets/nucleo-logo.png'
+}
+
+renderCampos()
+</script>
+</body>
+</html>
