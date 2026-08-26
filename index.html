@@ -22,7 +22,7 @@ body{margin:0;background:var(--n);color:var(--h);font-family:Arial,sans-serif}
 .ey{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--c)}
 .grid{display:grid;grid-template-columns:360px 1fr;gap:28px;margin-top:28px}
 .panel{border:1px solid #333;border-radius:12px;padding:20px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 24px}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0 24px}
 .tab,.btn,.file{border:1px solid #444;background:transparent;color:var(--h);padding:14px;border-radius:8px;font-weight:700;letter-spacing:.08em;text-align:center;font-size:14px}
 .tab.on,.primary{background:var(--h);color:var(--n)}
 label{display:block;font-size:11px;letter-spacing:.15em;color:var(--c);margin:14px 0 6px;text-transform:uppercase}
@@ -85,6 +85,7 @@ textarea::placeholder{color:#555}
         <button class="tab on" data-mode="run">RUN</button>
         <button class="tab" data-mode="clase">CLASE</button>
         <button class="tab" data-mode="hyrox">HYROX</button>
+        <button class="tab" data-mode="fuerza">FUERZA</button>
       </div>
 
       <div class="ey">02 · COMPLETA TUS DATOS</div>
@@ -164,6 +165,13 @@ const modes = {
   // todas importan para la historia).
   hyrox: {
     mainLabel: 'Tiempo total', mainPlaceholder: '01:18:42', mainOut: 'TIEMPO TOTAL',
+  },
+  fuerza: {
+    mainLabel: 'Tiempo total', mainPlaceholder: '58:21', mainOut: 'TIEMPO TOTAL',
+    campos: [
+      { id: 'd1', label: 'Frecuencia cardiaca media', placeholder: '85 PPM', out: 'FC MEDIA' },
+      { id: 'd2', label: 'Calorías totales', placeholder: '128 KCAL', out: 'CALORÍAS' },
+    ],
   },
 }
 
