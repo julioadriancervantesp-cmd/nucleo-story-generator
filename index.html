@@ -32,6 +32,16 @@ input::placeholder{color:#555}
 .ranges.show{display:block}
 .range{accent-color:var(--h)}
 .primary{width:100%;margin-top:24px;cursor:pointer;padding:16px;font-size:15px}
+.note{font-size:12px;color:var(--c);margin-top:12px;line-height:1.5}
+
+.estacion{border:1px solid #2c2c2c;border-radius:8px;margin-top:8px;overflow:hidden}
+.estacion.on{border-color:#555}
+.chk{display:flex;align-items:center;gap:10px;padding:12px 14px;margin:0;cursor:pointer;text-transform:none;letter-spacing:0;font-size:14px;color:var(--h);font-weight:400}
+.chk input{width:18px;height:18px;flex:none;accent-color:var(--h)}
+.estacion .tiempo{display:none;border:0;border-top:1px solid #2c2c2c;border-radius:0;padding:12px 14px}
+.estacion.on .tiempo{display:block}
+.contador{font-size:11px;color:var(--c);margin-top:14px;text-align:right}
+
 .preview{max-width:430px;margin:auto;aspect-ratio:9/16;position:relative;overflow:hidden;background:#111;border:1px solid #333;border-radius:12px}
 .bg{position:absolute;inset:0;background-size:cover;background-position:50% 50%}
 .shade{position:absolute;inset:0;background:rgba(10,10,10,.48)}
@@ -41,16 +51,16 @@ input::placeholder{color:#555}
 .rule{height:1px;background:#777;margin:15px 0 24px}
 .main{font-size:76px;font-weight:700;letter-spacing:-.06em;line-height:.9;min-height:.9em}
 .mainlabel{font-size:9px;letter-spacing:.3em;margin-top:14px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #666;border-bottom:1px solid #666;margin-top:28px}
-.metric{text-align:center;padding:16px 5px;border-right:1px solid #555}
-.metric:last-child{border:0}
-.v{font-size:17px;font-weight:700;min-height:1.2em}
-.l{font-size:7px;letter-spacing:.18em;color:var(--c);margin-top:7px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #666;margin-top:28px}
+.metrics:not(:empty){border-bottom:1px solid #666}
+.metric{text-align:center;padding:14px 4px;border-right:1px solid #555}
+.metric:nth-child(4n){border-right:0}
+.v{font-size:15px;font-weight:700}
+.l{font-size:6.5px;letter-spacing:.14em;color:var(--c);margin-top:6px}
 .msg{font-size:14px;font-weight:700;letter-spacing:.2em;margin-top:28px;min-height:1.4em}
 .foot{margin-top:auto;border-top:1px solid #666;padding-top:16px;display:flex;justify-content:space-between;align-items:end}
 .foot b{letter-spacing:.2em}
 .foot small{font-size:7px;letter-spacing:.2em;color:var(--c)}
-.note{font-size:12px;color:var(--c);margin-top:12px;line-height:1.5}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--h);color:var(--n);padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:780px){.grid{grid-template-columns:1fr}.panel{order:2}.previewWrap{order:1}.top .ey{display:none}.app{padding:14px}.main{font-size:17vw}}
@@ -105,12 +115,7 @@ input::placeholder{color:#555}
           <div class="rule"></div>
           <div id="mainO" class="main"></div>
           <div id="mainL" class="mainlabel">RITMO / KM</div>
-          <div class="metrics">
-            <div class="metric"><div id="o1" class="v"></div><div id="l1" class="l">DISTANCIA</div></div>
-            <div class="metric"><div id="o2" class="v"></div><div id="l2" class="l">TIEMPO</div></div>
-            <div class="metric"><div id="o3" class="v"></div><div id="l3" class="l">RITMO</div></div>
-            <div class="metric"><div id="o4" class="v"></div><div id="l4" class="l">FC MEDIA</div></div>
-          </div>
+          <div id="metrics" class="metrics"></div>
           <div id="msgO" class="msg"></div>
           <div class="foot">
             <div><b>NUCLEO</b><br><small>TEPIC, NAY.</small></div>
@@ -128,10 +133,8 @@ input::placeholder{color:#555}
 <script>
 const $ = x => document.getElementById(x)
 
-// Cada modo define sus propios campos con nombre real y un ejemplo de
-// formato — así el formulario dice "Distancia" en vez de "Dato 1" y el
-// usuario ve de una vez qué escribir, sin tener que adivinar ni borrar
-// un valor de muestra primero.
+// Run/Clase: campos fijos, cada uno con su nombre real (no "Dato 1/2/3/4")
+// para que el formulario diga lo mismo que va a aparecer en la imagen.
 const modes = {
   run: {
     mainLabel: 'Ritmo por KM', mainPlaceholder: '05:12', mainOut: 'RITMO / KM',
@@ -151,49 +154,99 @@ const modes = {
       { id: 'd4', label: 'Calorías',   placeholder: '558 KCAL', out: 'CALORÍAS' },
     ],
   },
+  // HYROX no tiene campos fijos — son las 8 estaciones oficiales, y cada
+  // quien marca las que quiere mostrar (no siempre se corren las 8, o no
+  // todas importan para la historia).
   hyrox: {
     mainLabel: 'Tiempo total', mainPlaceholder: '01:18:42', mainOut: 'TIEMPO TOTAL',
-    campos: [
-      { id: 'd1', label: 'Run',  placeholder: '40:12', out: 'RUN' },
-      { id: 'd2', label: 'Ski',  placeholder: '04:36', out: 'SKI' },
-      { id: 'd3', label: 'Sled', placeholder: '08:18', out: 'SLED' },
-      { id: 'd4', label: 'Frecuencia cardiaca', placeholder: '164 BPM', out: 'FC MEDIA' },
-    ],
   },
 }
+
+const HYROX_ESTACIONES = [
+  { id: 'e1', label: 'SkiErg (1000 m)',          out: 'SKIERG',        placeholder: '04:10' },
+  { id: 'e2', label: 'Sled Push (50 m)',         out: 'SLED PUSH',     placeholder: '02:30' },
+  { id: 'e3', label: 'Sled Pull (50 m)',         out: 'SLED PULL',     placeholder: '03:15' },
+  { id: 'e4', label: 'Burpee Broad Jump (80 m)', out: 'BURPEE JUMP',   placeholder: '03:45' },
+  { id: 'e5', label: 'Remo (1000 m)',            out: 'REMO',          placeholder: '04:20' },
+  { id: 'e6', label: 'Farmers Carry (200 m)',    out: 'FARMERS CARRY', placeholder: '02:10' },
+  { id: 'e7', label: 'Sandbag Lunges (100 m)',   out: 'LUNGES',        placeholder: '03:50' },
+  { id: 'e8', label: 'Wall Balls',               out: 'WALL BALLS',   placeholder: '05:30' },
+]
 
 let mode = 'run'
 let image = null
 const fecha = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
   .format(new Date()).replace('.', '').toUpperCase()
 
+function val(id, fallback) {
+  const v = $(id)?.value.trim()
+  return (v || fallback || '').toUpperCase()
+}
+
 function renderCampos() {
   const m = modes[mode]
-  $('campos').innerHTML = `
-    <label>${m.mainLabel}</label>
-    <input id="main" placeholder="${m.mainPlaceholder}">
-    ${m.campos.map(c => `<label>${c.label}</label><input id="${c.id}" placeholder="${c.placeholder}">`).join('')}
-  `
-  $('main').oninput = sync
-  m.campos.forEach(c => { $(c.id).oninput = sync })
+
+  if (mode === 'hyrox') {
+    $('campos').innerHTML = `
+      <label>${m.mainLabel}</label>
+      <input id="main" placeholder="${m.mainPlaceholder}">
+      <label>Marca las estaciones que quieres mostrar</label>
+      ${HYROX_ESTACIONES.map(e => `
+        <div class="estacion" id="wrap_${e.id}">
+          <label class="chk"><input type="checkbox" id="chk_${e.id}"> ${e.label}</label>
+          <input class="tiempo" id="${e.id}" placeholder="${e.placeholder}">
+        </div>
+      `).join('')}
+      <div class="contador" id="contador"></div>
+    `
+    $('main').oninput = sync
+    HYROX_ESTACIONES.forEach(e => {
+      $('chk_' + e.id).onchange = () => {
+        $('wrap_' + e.id).classList.toggle('on', $('chk_' + e.id).checked)
+        sync()
+      }
+      $(e.id).oninput = sync
+    })
+  } else {
+    $('campos').innerHTML = `
+      <label>${m.mainLabel}</label>
+      <input id="main" placeholder="${m.mainPlaceholder}">
+      ${m.campos.map(c => `<label>${c.label}</label><input id="${c.id}" placeholder="${c.placeholder}">`).join('')}
+    `
+    $('main').oninput = sync
+    m.campos.forEach(c => { $(c.id).oninput = sync })
+  }
   sync()
 }
 
-function val(id, fallback) {
-  const v = $(id)?.value.trim()
-  return (v || fallback).toUpperCase()
+// Devuelve los renglones a mostrar en la imagen — fijos para run/clase,
+// solo las estaciones marcadas para hyrox (0 a 8, la imagen se acomoda sola).
+function itemsActuales() {
+  const m = modes[mode]
+  if (mode === 'hyrox') {
+    return HYROX_ESTACIONES
+      .filter(e => $('chk_' + e.id)?.checked)
+      .map(e => ({ valor: val(e.id, e.placeholder), label: e.out }))
+  }
+  return m.campos.map(c => ({ valor: val(c.id, c.placeholder), label: c.out }))
 }
 
 function sync() {
   const m = modes[mode]
   $('mainO').textContent = val('main', m.mainPlaceholder)
   $('mainL').textContent = m.mainOut
-  m.campos.forEach((c, i) => {
-    $('o' + (i + 1)).textContent = val(c.id, c.placeholder)
-    $('l' + (i + 1)).textContent = c.out
-  })
-  $('msgO').textContent = val('msg', '')
   $('date').textContent = mode.toUpperCase() + ' · ' + fecha
+  $('msgO').textContent = val('msg', '')
+
+  const items = itemsActuales()
+  $('metrics').innerHTML = items.map(it => `
+    <div class="metric"><div class="v">${it.valor}</div><div class="l">${it.label}</div></div>
+  `).join('')
+
+  if (mode === 'hyrox') {
+    const c = $('contador')
+    if (c) c.textContent = items.length + ' de 8 estaciones marcadas'
+  }
 }
 
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
@@ -238,6 +291,10 @@ function cover(ctx, img, w, h, z, px, py) {
   if (r > tr) { dh = h * z; dw = dh * r } else { dw = w * z; dh = dw / r }
   ctx.drawImage(img, (w - dw) * px, (h - dh) * py, dw, dh)
 }
+function linea(ctx, y) {
+  ctx.strokeStyle = '#777'
+  ctx.beginPath(); ctx.moveTo(80, y); ctx.lineTo(1000, y); ctx.stroke()
+}
 
 function mostrarToast(msg) {
   const t = $('toast')
@@ -264,21 +321,32 @@ $('download').onclick = () => {
   logo.onload = () => {
     ctx.drawImage(logo, 80, 80, 650, 161)
     text(ctx, mode.toUpperCase() + ' · ' + fecha, 80, 620, 25)
-    ctx.strokeStyle = '#777'
-    ctx.beginPath(); ctx.moveTo(80, 660); ctx.lineTo(1000, 660); ctx.stroke()
+    linea(ctx, 660)
 
     text(ctx, val('main', m.mainPlaceholder), 80, 870, 190, '700')
     text(ctx, m.mainOut, 85, 940, 25)
-    ctx.beginPath(); ctx.moveTo(80, 1010); ctx.lineTo(1000, 1010); ctx.stroke()
 
-    ;[195, 425, 655, 885].forEach((x, i) => {
-      text(ctx, val(m.campos[i].id, m.campos[i].placeholder), x, 1100, 38, '700', 'center')
-      text(ctx, m.campos[i].out, x, 1145, 18, '400', 'center')
-    })
-    ctx.beginPath(); ctx.moveTo(80, 1205); ctx.lineTo(1000, 1205); ctx.stroke()
+    const items = itemsActuales()
+    const xs = [195, 425, 655, 885]
+    const filas = items.length === 0 ? 0 : (items.length > 4 ? 2 : 1)
 
-    text(ctx, val('msg', ''), 80, 1320, 34, '700')
-    ctx.beginPath(); ctx.moveTo(80, 1720); ctx.lineTo(1000, 1720); ctx.stroke()
+    let yTrasMetricas = 1010
+    if (filas > 0) {
+      linea(ctx, 1010)
+      items.slice(0, 8).forEach((it, i) => {
+        const fila = Math.floor(i / 4), col = i % 4
+        const yv = 1100 + fila * 145, yl = 1145 + fila * 145
+        text(ctx, it.valor, xs[col], yv, 34, '700', 'center')
+        text(ctx, it.label, xs[col], yl, 16, '400', 'center')
+      })
+      yTrasMetricas = filas === 2 ? 1300 : 1205
+      linea(ctx, yTrasMetricas)
+    }
+
+    const yMsg = yTrasMetricas + 115
+    text(ctx, val('msg', ''), 80, yMsg, 34, '700')
+
+    linea(ctx, 1720)
     text(ctx, 'NUCLEO', 80, 1800, 38, '700')
     text(ctx, 'TEPIC, NAY.', 80, 1845, 19)
     text(ctx, 'VOLVER · CONSTRUIR · CARÁCTER', 1000, 1845, 16, '400', 'right')
@@ -287,7 +355,6 @@ $('download').onclick = () => {
       if (!blob) { mostrarToast('No se pudo generar la imagen, intenta de nuevo'); return }
       const url = URL.createObjectURL(blob)
 
-      // Intento 1: descarga directa (funciona en Android/Chrome/desktop).
       const a = document.createElement('a')
       a.download = 'NUCLEO-STORY.png'
       a.href = url
@@ -295,8 +362,6 @@ $('download').onclick = () => {
       a.click()
       a.remove()
 
-      // Intento 2, siempre además del primero: abrir en pestaña nueva —
-      // es lo único que funciona de forma confiable en Safari/iPhone.
       window.open(url, '_blank')
 
       mostrarToast('Listo — si no se descargó sola, mantén el dedo sobre la imagen y "Agregar a Fotos"')
