@@ -59,13 +59,16 @@ input::placeholder{color:#555}
 .metric:nth-child(4n){border-right:0}
 .v{font-size:15px;font-weight:700}
 .l{font-size:6.5px;letter-spacing:.14em;color:var(--c);margin-top:6px}
-.msg{font-size:14px;font-weight:700;letter-spacing:.2em;margin-top:28px;min-height:1.4em}
+.msg{font-size:13px;font-weight:700;letter-spacing:.03em;margin-top:24px;min-height:1.4em;white-space:pre-wrap;word-break:break-word;line-height:1.5;flex:1;overflow:hidden}
+textarea{width:100%;background:#0d0d0d;border:1px solid #3b3b3b;border-radius:7px;padding:13px;color:var(--h);font-size:16px;font-family:inherit;resize:vertical;min-height:90px}
+textarea::placeholder{color:#555}
 .foot{margin-top:auto;border-top:1px solid #666;padding-top:16px;display:flex;justify-content:space-between;align-items:end}
 .foot b{letter-spacing:.2em}
 .foot small{font-size:7px;letter-spacing:.2em;color:var(--c)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--h);color:var(--n);padding:12px 20px;border-radius:8px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:780px){.grid{grid-template-columns:1fr}.panel{order:2}.previewWrap{order:1}.top .ey{display:none}.app{padding:14px}.main{font-size:17vw}}
+@media(max-width:420px){.v{font-size:11.5px}.l{font-size:6px}.metric{padding:12px 2px}}
 </style>
 </head>
 <body>
@@ -87,8 +90,8 @@ input::placeholder{color:#555}
       <div class="ey">02 · COMPLETA TUS DATOS</div>
       <div id="campos"></div>
 
-      <label>Mensaje (opcional)</label>
-      <input id="msg" placeholder="HOY VOLVÍ." maxlength="28">
+      <label>Mensaje (opcional — cabe una rutina completa)</label>
+      <textarea id="msg" rows="3" maxlength="600" placeholder="HOY VOLVÍ.&#10;O pega tu rutina completa: series, repeticiones, lo que quieras."></textarea>
 
       <label class="file">AGREGAR FOTO (OPCIONAL)<input id="photo" type="file" accept="image/*"></label>
       <div id="ranges" class="ranges">
@@ -180,9 +183,10 @@ let image = null
 const fecha = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
   .format(new Date()).replace('.', '').toUpperCase()
 
-function val(id, fallback) {
+function val(id, fallback, upper = true) {
   const v = $(id)?.value.trim()
-  return (v || fallback || '').toUpperCase()
+  const out = v || fallback || ''
+  return upper ? out.toUpperCase() : out
 }
 
 function renderCampos() {
@@ -238,7 +242,7 @@ function sync() {
   $('mainO').textContent = val('main', m.mainPlaceholder)
   $('mainL').textContent = m.mainOut
   $('date').textContent = mode.toUpperCase() + ' · ' + fecha
-  $('msgO').textContent = val('msg', '')
+  $('msgO').textContent = val('msg', '', false)
 
   const items = itemsActuales()
   $('metrics').innerHTML = items.map(it => `
@@ -298,6 +302,47 @@ function linea(ctx, y) {
   ctx.beginPath(); ctx.moveTo(80, y); ctx.lineTo(1000, y); ctx.stroke()
 }
 
+// Mensaje de largo libre (puede ser una rutina completa, con saltos de
+// línea) — reduce el tamaño de letra automáticamente hasta que quepa
+// completo en el espacio disponible, en vez de cortarlo.
+function textoMultilinea(ctx, contenido, x, yStart, yLimite, maxWidth) {
+  if (!contenido) return
+  const parrafos = contenido.split('\n')
+  const disponible = yLimite - yStart
+  let fontSize = 34, lineHeight = 0, lineas = []
+
+  for (; fontSize >= 15; fontSize -= 2) {
+    ctx.font = `700 ${fontSize}px Arial`
+    lineHeight = fontSize * 1.4
+    lineas = []
+    parrafos.forEach(p => {
+      if (!p) { lineas.push(''); return }
+      let actual = ''
+      p.split(' ').forEach(palabra => {
+        const prueba = actual ? actual + ' ' + palabra : palabra
+        if (ctx.measureText(prueba).width > maxWidth && actual) {
+          lineas.push(actual)
+          actual = palabra
+        } else {
+          actual = prueba
+        }
+      })
+      lineas.push(actual)
+    })
+    if (lineas.length * lineHeight <= disponible) break
+  }
+
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#EDEDE9'
+  ctx.font = `700 ${fontSize}px Arial`
+  let y = yStart + fontSize
+  for (const l of lineas) {
+    if (y > yLimite) break
+    ctx.fillText(l, x, y)
+    y += lineHeight
+  }
+}
+
 function mostrarToast(msg) {
   const t = $('toast')
   t.textContent = msg
@@ -345,8 +390,8 @@ $('download').onclick = () => {
       linea(ctx, yTrasMetricas)
     }
 
-    const yMsg = yTrasMetricas + 115
-    text(ctx, val('msg', ''), 80, yMsg, 34, '700')
+    const yMsg = yTrasMetricas + 95
+    textoMultilinea(ctx, val('msg', '', false), 80, yMsg, 1680, 920)
 
     linea(ctx, 1720)
     text(ctx, 'NUCLEO', 80, 1800, 38, '700')
