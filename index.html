@@ -16,7 +16,9 @@
 body{margin:0;background:var(--n);color:var(--h);font-family:Arial,sans-serif}
 .app{max-width:1200px;margin:auto;padding:20px}
 .top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding:0 0 18px}
-.brand{height:34px}
+.brand{height:34px;animation:latido 3.2s ease-in-out infinite;transform-origin:center left}
+@keyframes latido{0%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(237,237,233,0))}50%{transform:scale(1.045);filter:drop-shadow(0 0 12px rgba(237,237,233,.3))}}
+@media(prefers-reduced-motion:reduce){.brand{animation:none}}
 .ey{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--c)}
 .grid{display:grid;grid-template-columns:360px 1fr;gap:28px;margin-top:28px}
 .panel{border:1px solid #333;border-radius:12px;padding:20px}
