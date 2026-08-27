@@ -375,26 +375,33 @@ $('download').onclick = () => {
   const logo = new Image()
   logo.onload = () => {
     ctx.drawImage(logo, 80, 80, 650, 161)
-    text(ctx, mode.toUpperCase() + ' · ' + fecha, 80, 620, 25)
-    linea(ctx, 660)
-
-    text(ctx, val('main', m.mainPlaceholder), 80, 870, 190, '700')
-    text(ctx, m.mainOut, 85, 940, 25)
 
     const items = itemsActuales()
     const xs = [195, 425, 655, 885]
     const filas = items.length === 0 ? 0 : (items.length > 4 ? 2 : 1)
 
-    let yTrasMetricas = 1010
+    // Con 2 filas de métricas (HYROX con más de 4 estaciones marcadas) el
+    // hueco decorativo entre el logo y la fecha se recorta — ese espacio no
+    // se pierde, se lo regalamos al mensaje de abajo, que es donde de
+    // verdad hace falta cuando alguien pega una rutina larga.
+    const offset = filas === 2 ? 200 : 0
+
+    text(ctx, mode.toUpperCase() + ' · ' + fecha, 80, 620 - offset, 25)
+    linea(ctx, 660 - offset)
+
+    text(ctx, val('main', m.mainPlaceholder), 80, 870 - offset, 190, '700')
+    text(ctx, m.mainOut, 85, 940 - offset, 25)
+
+    let yTrasMetricas = 1010 - offset
     if (filas > 0) {
-      linea(ctx, 1010)
+      linea(ctx, 1010 - offset)
       items.slice(0, 8).forEach((it, i) => {
         const fila = Math.floor(i / 4), col = i % 4
-        const yv = 1100 + fila * 145, yl = 1145 + fila * 145
+        const yv = 1100 - offset + fila * 145, yl = 1145 - offset + fila * 145
         text(ctx, it.valor, xs[col], yv, 34, '700', 'center')
         text(ctx, it.label, xs[col], yl, 16, '400', 'center')
       })
-      yTrasMetricas = filas === 2 ? 1300 : 1205
+      yTrasMetricas = (filas === 2 ? 1300 : 1205) - offset
       linea(ctx, yTrasMetricas)
     }
 
